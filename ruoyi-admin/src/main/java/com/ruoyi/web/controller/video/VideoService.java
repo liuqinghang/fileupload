@@ -88,7 +88,7 @@ public class VideoService{
         }
     }
 
-    public void uploadFileByMappedByteBuffer(MultipartFileParam param) throws IOException {
+    public String uploadFileByMappedByteBuffer(MultipartFileParam param) throws IOException {
         String fileName = param.getName();
         String uploadDirPath = finalDirPath + param.getMd5();
         String tempFileName = fileName + ".tmp";
@@ -114,7 +114,10 @@ public class VideoService{
         if (isOk) {
             boolean flag = renameFile(tmpFile, fileName);
             System.out.println("upload complete !!" + flag + " name=" + fileName);
+            return uploadDirPath + fileName;
         }
+
+        return "";
     }
 
     /**

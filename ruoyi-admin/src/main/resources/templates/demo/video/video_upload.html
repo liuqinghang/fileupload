@@ -26,7 +26,7 @@
 <th:block th:include="include :: footer" />
 <script th:src="@{/js/jquery.min.js}"></script>
 <script th:src="@{/js/bootstrap.min.js}"></script>
-<script th:src="@{/js/webuploader.js}"></script>
+<script th:src="@{/js/webuploader.min.js}"></script>
 <script th:inline="javascript">
     // var prefix = ctx + "demo/video";
     var $btn = $('#ctlBtn');
@@ -54,19 +54,19 @@
                 file.uid = WebUploader.Base.guid();
                 // 进行md5判断
                 $.post("checkFileMd5", {uid: file.uid, md5: file.md5},
-                    function (data) {
-                        console.log(data.status);
-                        var status = data.status.value;
+                    function (result) {
+                        console.log(result);
+                        var status = result.msg;
                         task.resolve();
-                        if (status == 101) {
+                        if (status == '101') {
                             // 文件不存在，那就正常流程
-                        } else if (status == 100) {
+                        } else if (status == '100') {
                             // 忽略上传过程，直接标识上传成功；
                             uploader.skipFile(file);
                             file.pass = true;
-                        } else if (status == 102) {
+                        } else if (status == '102') {
                             // 部分已经上传到服务器了，但是差几个模块。
-                            file.missChunks = data.data;
+                            file.missChunks = result.data;
                         }
                     });
             });
@@ -149,11 +149,13 @@
         getProgressBar(file, percentage, "FILE", "上传进度");
     });
     // 上传返回结果
-    uploader.on('uploadSuccess', function (file) {
+    uploader.on('uploadSuccess', function (file,response) {
         var text = '已上传';
         if (file.pass) {
             text = "文件妙传功能，文件已上传。"
         }
+        console.log('#########')
+        console.log(response)
         $('#' + file.id).find('p.state').text(text);
     });
     uploader.on('uploadError', function (file) {

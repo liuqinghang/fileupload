@@ -1,5 +1,6 @@
 package com.ruoyi.web.controller.video;
 
+import com.ruoyi.common.core.domain.AjaxResult;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,13 +44,14 @@ public class VideoController {
     public Object checkFileMd5(String md5) throws IOException {
         Object processingObj = stringRedisTemplate.opsForHash().get(Constants.FILE_UPLOAD_STATUS, md5);
         if (processingObj == null) {
-            return new ResultVo(ResultStatus.NO_HAVE);
+//            return new ResultVo(ResultStatus.NO_HAVE);
+            return AjaxResult.success("101");
         }
         String processingStr = processingObj.toString();
         boolean processing = Boolean.parseBoolean(processingStr);
         String value = stringRedisTemplate.opsForValue().get(Constants.FILE_MD5_KEY + md5);
         if (processing) {
-            return new ResultVo(ResultStatus.IS_HAVE, value);
+            return AjaxResult.success("100");
         } else {
             File confFile = new File(value);
             byte[] completeList = FileUtils.readFileToByteArray(confFile);
@@ -59,7 +61,8 @@ public class VideoController {
                     missChunkList.add(i + "");
                 }
             }
-            return new ResultVo<>(ResultStatus.ING_HAVE, missChunkList);
+//            return new ResultVo<>(ResultStatus.ING_HAVE, missChunkList);
+            return AjaxResult.success("102", missChunkList);
         }
     }
 
@@ -73,21 +76,22 @@ public class VideoController {
      */
     @RequestMapping(value = "/fileUpload", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity fileUpload(MultipartFileParam param, HttpServletRequest request) {
+    public AjaxResult fileUpload(MultipartFileParam param, HttpServletRequest request) {
         boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+        String fileUrl = "";
         if (isMultipart) {
 //            logger.info("上传文件start。");
             try {
                 // 方法1
 //                storageService.uploadFileRandomAccessFile(param);
                 // 方法2 这个更快点
-                storageService.uploadFileByMappedByteBuffer(param);
+                fileUrl = storageService.uploadFileByMappedByteBuffer(param);
             } catch (IOException e) {
                 e.printStackTrace();
 //                logger.error("文件上传失败。{}", param.toString());
             }
 //            logger.info("上传文件end。");
         }
-        return ResponseEntity.ok().body("上传成功。");
+        return AjaxResult.success(fileUrl);
     }
 }
